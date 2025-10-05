@@ -1,9 +1,10 @@
 from service.cache import Cache, load_cache
 from .utils import edit_bet_msg, set_default_username
-from service.database.utils import get_user_by_username
+from service.database.utils import get_user_by_telegram_id
 from settings import admin_ids, known_commands
 from service.background_process import bets_event
-from service.validation import validation_username, validation_bet
+from service.validation import validation_username, validation_bet,\
+    validation_give
 
 
 def register_command_handlers(bot):
@@ -21,7 +22,7 @@ def register_command_handlers(bot):
     @bot.message_handler(commands=['username'])
     @load_cache
     def set_username(message, user):
-        error, username = validation_username(message)
+        error, username = validation_username(message, user)
         if not error:
             user.username = username
 
@@ -60,21 +61,40 @@ def register_command_handlers(bot):
     @bot.message_handler(commands=['set_balance'])
     def set_balance(message):
         if message.from_user.id in admin_ids:
-            info = message.text.split()[1:]
-            username = ' '.join(info[:-1])
-            balance = info[-1]
-            user = get_user_by_username(username)
-            user.balance = int(balance)
+            mess_text = message.text.split()
+            balance = int(mess_text[-1])
+            user_id = message.reply_to_message.from_user.id \
+                if message.reply_to_message else message.from_user.id
+            user = get_user_by_telegram_id(user_id)
+            user.balance = balance
+
             Cache.save(user)
             bot.send_message(chat_id=message.chat.id,
                              text='Баланс установлен',
                              reply_to_message_id=message.message_id)
 
+    @bot.message_handler(commands=['give'])
+    @load_cache
+    def give(message, user):
+        error, amount = validation_give(message, user)
+        if not error:
+            recipient_user_id = message.reply_to_message.from_user.id
+            recipient_user = get_user_by_telegram_id(recipient_user_id)
+            user.balance -= amount
+            recipient_user.balance += amount
+
+            Cache.save(recipient_user)
+
+        bot.send_message(chat_id=message.chat.id,
+                         text=error or 'Успешный перевод!',
+                         reply_to_message_id=message.message_id)
+
     @bot.message_handler(commands=['help'])
     def help(message):
-        mess_help = '/username - установить юзернейм (/username name)\n' \
+        mess_help = '/username - узнать или установить юзернейм (/username name)\n' \
                     '/bet - засандалить сочную ставочку (/bet ставка+цвет)\n' \
-                    '/balance - узнать баланс'
+                    '/balance - узнать баланс\n' \
+                    '/give - передать баланс (ответить на сообщение получателя)'
         bot.send_message(chat_id=message.chat.id,
                          text=mess_help,
                          reply_to_message_id=message.message_id)

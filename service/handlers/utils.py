@@ -17,8 +17,8 @@ def get_bet_color(bet_color):
     return colors_name.get(bet_color)
 
 
-def is_enough_balance(balance, bet_rate):
-    return balance >= bet_rate
+def is_enough_balance(balance, amount):
+    return balance >= amount
 
 
 def set_default_username(user):

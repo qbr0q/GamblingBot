@@ -28,9 +28,9 @@ def get_all_usernames():
         return usernames
 
 
-def get_user_by_username(username):
+def get_user_by_telegram_id(user_id):
     with Session() as session:
         user = session.scalar(
-            select(Users).where(Users.username == username)
+            select(Users).where(Users.telegram_id == user_id)
         )
         return user
