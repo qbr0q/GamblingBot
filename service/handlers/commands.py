@@ -1,7 +1,7 @@
 from service.cache import Cache, load_cache
 from .utils import edit_bet_msg, set_default_username
 from service.database.utils import get_user_by_telegram_id
-from settings import admin_ids, known_commands
+from settings import admin_ids
 from service.background_process import bets_event
 from service.validation import validation_username, validation_bet,\
     validation_give
@@ -101,8 +101,7 @@ def register_command_handlers(bot):
 
     @bot.message_handler(func=lambda message: message.text.startswith('/'))
     def unknown_command(message):
-        if message.text not in known_commands:
-            bot.send_message(chat_id=message.chat.id,
-                             text=f"Неизвестная команда: {message.text}. "
-                                  f"Для помощи воспользуйтесь командой /help",
-                             reply_to_message_id=message.message_id)
+        bot.send_message(chat_id=message.chat.id,
+                         text=f"Неизвестная команда: {message.text}. "
+                              f"Для помощи воспользуйтесь командой /help",
+                         reply_to_message_id=message.message_id)
