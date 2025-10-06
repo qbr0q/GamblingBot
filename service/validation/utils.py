@@ -54,5 +54,5 @@ def validation_give(message, user):
         return 'Некорректная сумма', amount
     amount = int(amount_str)
     if not is_enough_balance(user.balance, amount):
-        return 'Недостаточно средств на балансе', amount, recipient_username
+        return 'Недостаточно средств на балансе', amount
     return '', amount
